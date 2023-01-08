@@ -15,24 +15,26 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 import json
-from ctypes import *
-import sys
-import os
+from ctypes import cdll, c_void_p, c_int, c_uint, c_char_p
+from os import path
 
 NFTABLES_VERSION = "0.1"
+
 
 class SchemaValidator:
     """Libnftables JSON validator using jsonschema"""
 
     def __init__(self):
-        schema_path = os.path.join(os.path.dirname(__file__), "schema.json")
-        with open(schema_path, 'r') as schema_file:
+        schema_path = path.join(path.dirname(__file__), "schema.json")
+        with open(schema_path, 'r', encoding='utf-8') as schema_file:
             self.schema = json.load(schema_file)
+
         import jsonschema
         self.jsonschema = jsonschema
 
-    def validate(self, json):
-        self.jsonschema.validate(instance=json, schema=self.schema)
+    def validate(self, data):
+        self.jsonschema.validate(instance=data, schema=self.schema)
+
 
 class Nftables:
     """A class representing libnftables interface"""
@@ -76,8 +78,7 @@ class Nftables:
         """
         lib = cdll.LoadLibrary(sofile)
 
-        ### API function definitions
-
+        # API function definitions
         self.nft_ctx_new = lib.nft_ctx_new
         self.nft_ctx_new.restype = c_void_p
         self.nft_ctx_new.argtypes = [c_int]
@@ -379,12 +380,12 @@ class Nftables:
         """
         old = self.get_debug()
 
-        if type(values) in [str, int]:
+        if isinstance(values, (str, int)):
             values = [values]
 
         val = 0
         for v in values:
-            if type(v) is str:
+            if isinstance(v, str):
                 v = self.debug_flags[v]
             val |= v
 
@@ -414,7 +415,7 @@ class Nftables:
             output = output.decode("utf-8")
             error = error.decode("utf-8")
 
-        return (rc, output, error)
+        return rc, output, error
 
     def json_cmd(self, json_root):
         """Run an nftables command in JSON syntax via libnftables.
@@ -432,7 +433,7 @@ class Nftables:
             self.set_json_output(json_out_old)
         if len(output):
             output = json.loads(output)
-        return (rc, output, error)
+        return rc, output, error
 
     def json_validate(self, json_root):
         """Validate JSON object against libnftables schema.
