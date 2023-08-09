@@ -5,7 +5,7 @@ with open('README.md', 'r', encoding='utf-8') as info:
 
 setuptools.setup(
     name='ansibleguy-nftables',
-    version='1.0.2',
+    version='1.0.2-1',
     author='AnsibleGuy',
     author_email='guy@ansibleguy.net',
     description='Copy of the python3-nftables module used to interact with libnftables',
